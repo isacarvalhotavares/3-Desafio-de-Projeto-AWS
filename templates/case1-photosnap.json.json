@@ -1,0 +1,53 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Pipeline de upload e processamento de fotos - PhotoSnap",
+  "Resources": {
+    "PhotoBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": "photosnap-bucket-imagens"
+      }
+    },
+    "PhotoProcessingLambda": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "FunctionName": "PhotoProcessingFunction",
+        "Handler": "index.handler",
+        "Runtime": "python3.9",
+        "Role": "ARN_DA_ROLE_DO_LAMBDA",
+        "Code": {
+          "ZipFile": "def handler(event, context):\n    print('Processando foto:', event)"
+        }
+      }
+    },
+    "LambdaPermissionForS3": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {"Ref": "PhotoProcessingLambda"},
+        "Principal": "s3.amazonaws.com",
+        "SourceArn": {"Fn::GetAtt": ["PhotoBucket", "Arn"]}
+      }
+    },
+    "S3BucketNotification": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": "photosnap-bucket-imagens",
+        "NotificationConfiguration": {
+          "LambdaConfigurations": [
+            {
+              "Event": "s3:ObjectCreated:*",
+              "Function": {"Ref": "PhotoProcessingLambda"}
+            }
+          ]
+        }
+      }
+    },
+    "PhotoProcessedTopic": {
+      "Type": "AWS::SNS::Topic",
+      "Properties": {
+        "TopicName": "PhotoProcessedTopic"
+      }
+    }
+  }
+}

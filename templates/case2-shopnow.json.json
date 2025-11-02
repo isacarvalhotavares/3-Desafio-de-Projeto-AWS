@@ -1,0 +1,38 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Aplicação Web ShopNow com EC2 e banco RDS",
+  "Parameters": {
+    "KeyName": {"Type": "String", "Description": "Chave SSH para EC2"}
+  },
+  "Resources": {
+    "WebServerEC2": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "InstanceType": "t2.micro",
+        "ImageId": "AMI_ID_AQUI",
+        "KeyName": {"Ref": "KeyName"},
+        "SecurityGroupIds": ["ID_DO_SECURITY_GROUP"]
+      }
+    },
+    "ShopDatabase": {
+      "Type": "AWS::RDS::DBInstance",
+      "Properties": {
+        "DBInstanceClass": "db.t2.micro",
+        "Engine": "MySQL",
+        "MasterUsername": "admin",
+        "MasterUserPassword": "SenhaSegura123",
+        "AllocatedStorage": 20
+      }
+    }
+  },
+  "Outputs": {
+    "EC2PublicIP": {
+      "Description": "IP público da instância EC2",
+      "Value": {"Fn::GetAtt": ["WebServerEC2", "PublicIp"]}
+    },
+    "DatabaseEndpoint": {
+      "Description": "Endpoint do banco de dados",
+      "Value": {"Fn::GetAtt": ["ShopDatabase", "Endpoint.Address"]}
+    }
+  }
+}
